@@ -1,0 +1,327 @@
+{
+  "clubs": {
+    "Stacey": {
+      "title": "The fortress",
+      "kit": "Light blue & black",
+      "bio": "Stacey’s emblem stands guard over a floodlit fortress. A compact back line sets the tone. Win the duel, hold the line, then find the pass that takes the team forward.",
+      "image": "/assets/club-Stacey.webp",
+      "players": []
+    },
+    "CityMen": {
+      "title": "City rhythm",
+      "kit": "Crimson & white",
+      "bio": "A red skyline, a ball on concrete and a passing lane that opens for an instant. CityMen’s identity belongs to street football, where a quick touch can change the whole game.",
+      "image": "/assets/club-CityMen.webp",
+      "players": []
+    },
+    "Infinity": {
+      "title": "The endless run",
+      "kit": "Deep blue & cyan",
+      "bio": "Two loops trace the path of a move that keeps going. An Infinity runner lays the ball off, turns and arrives again on the other side of the defender.",
+      "image": "/assets/club-Infinity.webp",
+      "players": []
+    },
+    "Angels": {
+      "title": "Under one wing",
+      "kit": "White & silver",
+      "bio": "Silver wings frame the ball on the Angels crest. Their story is about cover and trust. When one player steps out to challenge, a teammate is already protecting the space behind.",
+      "image": "/assets/club-Angels.webp",
+      "players": []
+    },
+    "Foxes": {
+      "title": "The orange ambush",
+      "kit": "Orange & black",
+      "bio": "The fox waits for one loose touch. Then the orange shirts break together. Foxes FC return as Season 25 champions after finishing on 13 points.",
+      "image": "/assets/club-Foxes.webp",
+      "players": []
+    },
+    "Darkfang": {
+      "title": "The night watch",
+      "kit": "Black & gold",
+      "bio": "A tiger plants a boot on the ball. Darkfang’s black shirt and gold crest give the club its identity. Discipline defines its story: hold shape, measure the distance, choose the moment to strike.",
+      "image": "/assets/club-Darkfang.webp",
+      "players": []
+    },
+    "Typhoon": {
+      "title": "Into the storm",
+      "kit": "Green",
+      "bio": "The first runner forces the pass. The second closes the outlet. Typhoon’s wave crest captures the feeling of a press arriving from every direction.",
+      "image": "/assets/club-Typhoon.webp",
+      "players": []
+    }
+  },
+  "matches": [
+    {
+      "home": "Stacey FC",
+      "away": "Darkfang FC",
+      "round": "Round 1",
+      "venue": "Pitch 1",
+      "kickoff": "13:00",
+      "status": "scheduled",
+      "id": "s26-1",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Foxes FC",
+      "away": "Infinity FC",
+      "round": "Round 1",
+      "venue": "Pitch 2",
+      "kickoff": "13:00",
+      "status": "scheduled",
+      "id": "s26-2",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "CityMen FC",
+      "away": "Typhoon FC",
+      "round": "Round 1",
+      "venue": "Pitch 1",
+      "kickoff": "13:15",
+      "status": "scheduled",
+      "id": "s26-3",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Infinity FC",
+      "away": "Angels FC",
+      "round": "Round 2",
+      "venue": "Pitch 2",
+      "kickoff": "13:15",
+      "status": "scheduled",
+      "id": "s26-4",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Darkfang FC",
+      "away": "Typhoon FC",
+      "round": "Round 2",
+      "venue": "Pitch 1",
+      "kickoff": "13:30",
+      "status": "scheduled",
+      "id": "s26-5",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Foxes FC",
+      "away": "Infinity FC",
+      "round": "Round 2",
+      "venue": "Pitch 2",
+      "kickoff": "13:30",
+      "status": "scheduled",
+      "id": "s26-6",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "CityMen FC",
+      "away": "Darkfang FC",
+      "round": "Round 3",
+      "venue": "Pitch 1",
+      "kickoff": "13:45",
+      "status": "scheduled",
+      "id": "s26-7",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Angels FC",
+      "away": "Foxes FC",
+      "round": "Round 3",
+      "venue": "Pitch 2",
+      "kickoff": "13:45",
+      "status": "scheduled",
+      "id": "s26-8",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Typhoon FC",
+      "away": "Infinity FC",
+      "round": "Round 3",
+      "venue": "Pitch 1",
+      "kickoff": "14:00",
+      "status": "scheduled",
+      "id": "s26-9",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Foxes FC",
+      "away": "Stacey FC",
+      "round": "Round 4",
+      "venue": "Pitch 2",
+      "kickoff": "14:00",
+      "status": "scheduled",
+      "id": "s26-10",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Infinity FC",
+      "away": "CityMen FC",
+      "round": "Round 4",
+      "venue": "Pitch 1",
+      "kickoff": "14:15",
+      "status": "scheduled",
+      "id": "s26-11",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Typhoon FC",
+      "away": "Angels FC",
+      "round": "Round 4",
+      "venue": "Pitch 2",
+      "kickoff": "14:15",
+      "status": "scheduled",
+      "id": "s26-12",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Darkfang FC",
+      "away": "Infinity FC",
+      "round": "Round 5",
+      "venue": "Pitch 1",
+      "kickoff": "14:30",
+      "status": "scheduled",
+      "id": "s26-13",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Stacey FC",
+      "away": "Typhoon FC",
+      "round": "Round 5",
+      "venue": "Pitch 2",
+      "kickoff": "14:30",
+      "status": "scheduled",
+      "id": "s26-14",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "CityMen FC",
+      "away": "Angels FC",
+      "round": "Round 5",
+      "venue": "Pitch 1",
+      "kickoff": "14:45",
+      "status": "scheduled",
+      "id": "s26-15",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Typhoon FC",
+      "away": "Foxes FC",
+      "round": "Round 6",
+      "venue": "Pitch 2",
+      "kickoff": "14:45",
+      "status": "scheduled",
+      "id": "s26-16",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Angels FC",
+      "away": "Darkfang FC",
+      "round": "Round 6",
+      "venue": "Pitch 1",
+      "kickoff": "15:00",
+      "status": "scheduled",
+      "id": "s26-17",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "CityMen FC",
+      "away": "Stacey FC",
+      "round": "Round 6",
+      "venue": "Pitch 2",
+      "kickoff": "15:00",
+      "status": "scheduled",
+      "id": "s26-18",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Infinity FC",
+      "away": "Angels FC",
+      "round": "Round 7",
+      "venue": "Pitch 1",
+      "kickoff": "15:15",
+      "status": "scheduled",
+      "id": "s26-19",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Foxes FC",
+      "away": "CityMen FC",
+      "round": "Round 7",
+      "venue": "Pitch 2",
+      "kickoff": "15:15",
+      "status": "scheduled",
+      "id": "s26-20",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    },
+    {
+      "home": "Darkfang FC",
+      "away": "Stacey FC",
+      "round": "Round 7",
+      "venue": "Pitch 1",
+      "kickoff": "15:30",
+      "status": "scheduled",
+      "id": "s26-21",
+      "events": [],
+      "lineups": {},
+      "stream": ""
+    }
+  ],
+  "menu": {
+    "home": "Home",
+    "season": "Seasons",
+    "matches": "Matches",
+    "table": "Table",
+    "stats": "Stats",
+    "clubs": "Clubs"
+  },
+  "features": [
+    {
+      "title": "Season 26.",
+      "description": "Seven clubs. One champion.",
+      "image": "/assets/lineup-campaign.webp"
+    },
+    {
+      "title": "Foxes FC champions.",
+      "description": "Relive the trophy lift and the season Foxes FC finished on top.",
+      "image": "/assets/fox-campaign.webp"
+    }
+  ]
+}
