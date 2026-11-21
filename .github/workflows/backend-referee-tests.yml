@@ -28,3 +28,16 @@ jobs:
           name: boltz-league-backend-worker
           path: service/dist/server/index.js
           if-no-files-found: error
+      - name: Probe whether corrected private backend is live (read only)
+        run: |
+          node --input-type=module <<'JS'
+          const root='https://boltz-league-matchday.jpiyady.chatgpt.site';
+          for(const path of ['/referee/api/health','/api/health']){
+            try{
+              const result=await fetch(root+path,{headers:{Origin:'https://boltzleague.github.io'},signal:AbortSignal.timeout(12000)});
+              const text=await result.text();
+              const released=result.ok&&text.includes('boltz-ref-publish-2026-11-22');
+              console.log((released?'DEPLOYED':'NOT YET VERIFIED')+' private backend '+path+': HTTP '+result.status+' '+text.slice(0,160));
+            }catch(error){console.log('NOT YET VERIFIED private backend '+path+': '+error.message)}
+          }
+          JS
