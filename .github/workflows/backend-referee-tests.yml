@@ -1,0 +1,21 @@
+name: Boltz League backend referee regression tests
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate backend syntax
+        run: |
+          node --check service/worker/referee.mjs
+          node --check service/worker/api.mjs
+      - name: Test actual API worker with an in-memory database (no production writes)
+        run: node service/scripts/test-referee-write.mjs
