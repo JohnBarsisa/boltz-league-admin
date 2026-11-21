@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const seed=JSON.parse(fs.readFileSync('service/seed.json','utf8'));
 const workerSources=fs.readFileSync('service/worker/referee.mjs','utf8')+'\n'+
- fs.readFileSync('service/worker/api.mjs','utf8').replace('export default','const worker =');
+ fs.readFileSync('service/worker/api.mjs','utf8').replace('export default','const worker =').replace('}catch(e){return json(', "}catch(e){console.error('Regression test server error:',e.message);return json(");
 const run=new Function('seed','Response','crypto','TextEncoder','URL','Date',workerSources+
  '\nreturn {worker,validate,enforceRefScope,trustedRefereeOrigin};');
 const {worker}=run(seed,Response,crypto,TextEncoder,URL,Date);
