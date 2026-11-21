@@ -58,7 +58,7 @@ const req=(path,method='GET',origin=pages,body,session='')=>{
 };
 const call=async(path,method='GET',origin=pages,body,token='')=>{
  const result=await worker.fetch(req(path,method,origin,body,token),env);
- return {status:result.status,body:await result.json()};
+ return {status:result.status,body:result.status===204?null:await result.json()};
 };
 const report=x=>console.log('PASS backend: '+x);
 let x=await call('/api/login','POST',pages,{password:fakePass});
