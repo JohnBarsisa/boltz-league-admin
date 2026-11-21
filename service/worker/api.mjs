@@ -49,7 +49,7 @@ function validate(state){
   if(!Array.isArray(m.events)||m.events.length>300||new Set(m.events.map(e=>e.id)).size!==m.events.length)fail('Invalid match events.');
   if(m.status==='scheduled'&&m.events.length)fail('Start the fixture before adding an event.');
   for(const e of m.events){if(!/^[A-Za-z0-9_-]{1,60}$/.test(e.id))fail('Invalid event identifier.');if(!sides.includes(e.team)||!['goal','own goal','yellow card','red card','clean sheet'].includes(e.type))fail('Invalid event.');text(e.player,70,true);text(e.assist,70);if(e.assist&&(e.type!=='goal'||e.assist===e.player))fail('Choose a different player for an assist.');if(e.minute!==''&&(!Number.isInteger(e.minute)||e.minute<0||e.minute>150))fail('Use a minute from 0 to 150.')}
-  for(const [side,shape] of Object.entries(m.formations||{})){if(!sides.includes(side)||!['2-3-1','3-2-1','2-2-1','2-1-1','4-3-3','4-4-2','3-5-2','4-2-3-1'].includes(shape))fail('Choose an available formation.')}
+  for(const [side,shape] of Object.entries(m.formations||{})){if(!sides.includes(side)||!['2-3-2','3-2-2','2-2-3','2-3-1','3-2-1','2-2-1','2-1-1','4-3-3','4-4-2','3-5-2','4-2-3-1'].includes(shape))fail('Choose an available formation.')}
   for(const [side,points] of Object.entries(m.positions||{})){
    const starters=m.lineups?.[side]||[];
    if(!sides.includes(side)||!Array.isArray(points)||points.length>11||new Set(points.map(p=>p.name)).size!==points.length)fail('Invalid pitch positions.');
@@ -95,7 +95,7 @@ export default {async fetch(request,env){
  if(request.method==='GET'&&/^\/media\/[a-f0-9-]{36}$/.test(path)){const f=await env.BUCKET.get(path.slice(7));return f?new Response(f.body,{headers:{'Content-Type':f.httpMetadata.contentType,'X-Content-Type-Options':'nosniff','Cache-Control':'public,max-age=31536000,immutable'}}):new Response(null,{status:404})}
  if(path==='/api/state'||path==='/api/upload'||path==='/api/clip'){
   const email=request.headers.get('oai-authenticated-user-email');const owner=!!email&&email.toLowerCase()===env.EDITOR_EMAIL?.toLowerCase();if(!owner&&(path!=='/api/state'||!await referee(request,env)))return json({error:'Sign in to edit.'},403);
-  if(request.headers.get('origin')!==new URL(request.url).origin)return json({error:'Invalid origin.'},403);
+  if(!trustedRefereeOrigin(request))return json({error:'Invalid origin.'},403);
   if(path==='/api/clip'&&request.method==='POST'){
    const limit=16*1024*1024;
    if(Number(request.headers.get('Content-Length'))>limit)fail('Choose an MP4 under 16 MB.');

@@ -1,3 +1,10 @@
+// Referees work on the public GitHub Pages domain while the database runs
+// on the private service origin. Allow exactly these trusted write origins,
+// never arbitrary cross-site origins, and always require the server session.
+function trustedRefereeOrigin(request){
+ const origin=request.headers.get('origin');
+ return origin===new URL(request.url).origin || origin==='https://boltzleague.github.io';
+}
 const cookieName='boltz_ref_session';
 const sessionCookie=(v,age)=>cookieName+'='+v+'; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age='+age;
 async function digest(v){const hash=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('')}
@@ -6,7 +13,7 @@ async function referee(req,env){const key=await sessionKey(req);return !!key&&!!
 async function authRoute(req,env,path){
  const owner=!!env.EDITOR_EMAIL&&req.headers.get('oai-authenticated-user-email')?.toLowerCase()===env.EDITOR_EMAIL.toLowerCase();
  if(path==='/api/access'&&req.method==='GET')return json({role:owner?'owner':await referee(req,env)?'referee':'guest'});
- if(req.method!=='POST'||req.headers.get('origin')!==new URL(req.url).origin)return json({error:'Sign-in request rejected.'},403);
+ if(req.method!=='POST'||!trustedRefereeOrigin(req))return json({error:'Sign-in request rejected.'},403);
  if(path==='/api/logout'){const key=await sessionKey(req);if(key)await env.DB.prepare('DELETE FROM ref_sessions WHERE key=?').bind(key).run();return new Response(null,{status:204,headers:{'Set-Cookie':sessionCookie('',0)}})}
  const now=Date.now(),bucket=Math.floor(now/600000);
  const key=await digest(bucket+':'+(req.headers.get('oai-authenticated-user-id')||req.headers.get('cf-connecting-ip')||'studio'));
@@ -32,7 +39,7 @@ function enforceRefScope(before,after){
    const fields=profile(club);
    if(Object.keys(fields).length!==4 || fields.title!==name+' FC' || fields.bio!=='Season 6 squad.' || fields.kit!=='Unconfirmed' || fields.image!=='/assets/hero.webp')fail('New club profiles use the league defaults.',403);
  }
- const metadata=({status,events,lineups,formations,positions,round,kickoff,venue,home,away,stream,...rest})=>rest;
+ const metadata=({status,startedAt,finishedAt,events,lineups,formations,positions,round,kickoff,venue,home,away,stream,...rest})=>rest;
  const existing=new Map(before.matches.map(match=>[match.id,match]));
  for(const next of after.matches){
    const old=existing.get(next.id);
