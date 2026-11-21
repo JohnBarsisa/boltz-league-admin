@@ -15,7 +15,12 @@ const sessions=new Map(),attempts=new Map();
 const latest=()=>published.get(Math.max(...published.keys()));
 const DB={
  prepare(sql){
-  return {bind(...args){
+  return {
+   async first(){
+    if(sql.includes('FROM league_publications ORDER BY revision DESC LIMIT 1'))return copies(latest());
+    throw Error('Unimplemented unbound SQL first: '+sql);
+   },
+   bind(...args){
    return {
     async first(){
      if(sql.startsWith('SELECT key FROM ref_sessions'))return (sessions.get(args[0])||0)>args[1]?{key:args[0]}:null;
