@@ -74,6 +74,7 @@ export default {async fetch(request,env){
  try{
  const ownerEmail=request.headers.get('oai-authenticated-user-email');
  const isOwner=Boolean(ownerEmail && ownerEmail.toLowerCase()===env.EDITOR_EMAIL?.toLowerCase());
+ if(path==='/api/health'&&request.method==='GET')return json({ok:true,release:'boltz-ref-publish-2026-11-22'});
  if((request.headers.has('x-boltz-owner')||path==='/api/history')&&!isOwner)return json({error:'League owner access required.'},403);
  if(path==='/api/history'&&request.method==='GET'){
   const value=new URL(request.url).searchParams.get('revision');

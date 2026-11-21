@@ -19,3 +19,12 @@ jobs:
           node --check service/worker/api.mjs
       - name: Test actual API worker with an in-memory database (no production writes)
         run: node service/scripts/test-referee-write.mjs
+      - name: Build deployable private backend bundle
+        working-directory: service
+        run: node scripts/build.mjs
+      - name: Package verified private backend for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: boltz-league-backend-worker
+          path: service/dist/server/index.js
+          if-no-files-found: error
