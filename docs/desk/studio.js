@@ -20,7 +20,7 @@ let editingPlayer=null;
 let role='guest';
 const sectionTabs={teams:'Teams & squads',fixtures:'Fixtures',live:'Live matches',database:'Database control'};
 const tabs=[...Object.values(sectionTabs),'Homepage','Navigation','Appearance','Tournaments'];
-let state,revision,dirty=false,busy=false,tab=sectionTabs[query.get('section')] || (query.has('match')?'Live matches':tabs[0]),club='Foxes',matchId,feature=0,eventSide,editEvent;
+let state,revision,dirty=false,busy=false,restoreSeasonStart=false,tab=sectionTabs[query.get('section')] || (query.has('match')?'Live matches':tabs[0]),club='Foxes',matchId,feature=0,eventSide,editEvent;
 window.boltzRefDirty=()=>dirty;
 const say=v=>$('feedback').textContent=v;
 const match=()=>state.matches.find(m=>m.id===matchId);
@@ -30,7 +30,7 @@ const area=(label,id,v)=>'<label>'+label+'<textarea id="'+id+'">'+escape(v)+'</t
 const opts=(items,value)=>items.map(n=>'<option '+(n===value?'selected':'')+'>'+escape(n)+'</option>').join('');
 const select=(label,id,items,value)=>'<label>'+label+'<select id="'+id+'">'+opts(items,value)+'</select></label>';
 const chooseClub=n=>n.replace(/ FC$/,'');
-function changed(){dirty=true;notifyParent({type:'boltz-ref-dirty',dirty:true});$('revision').textContent='Unpublished changes';$('publish').disabled=busy}
+function changed(){restoreSeasonStart=false;dirty=true;notifyParent({type:'boltz-ref-dirty',dirty:true});$('revision').textContent='Unpublished changes';$('publish').disabled=busy}
 function render(){
  document.querySelector('.toolbar strong').textContent=state.tournament?.name||'Season 6';
  $('tabs').innerHTML=(role==='owner'?tabs:Object.values(sectionTabs)).map(t=>'<button data-tab="'+t+'" class="'+(tab===t?'on':'')+'">'+t+'</button>').join('');
@@ -72,7 +72,7 @@ function databaseView() {
  const playerCount=Object.values(state.clubs).reduce((sum,c)=>sum+c.players.length,0);
  return '<section class="card"><h3>Season 6 records</h3><p>'+state.matches.length+' fixtures · '+playerCount+' registered players · revision '+revision+'</p>'+
    '<div class="row"><button id="dbSave">Save changes</button><button id="reloadRecords">Reload published records</button></div></section>'+
-   '<section class="card"><h3>Reset season data</h3><p>Clear this season’s squads, fixtures, scores, lineups and events. Club profiles and league archives stay available.</p>'+
+   '<section class="card"><h3>Reset season data</h3><p>Restore the opening Season 26 fixture schedule and clear its scores, statuses, events and lineups. Squads, club profiles and other season archives are kept. The reset is only applied when you publish.</p>'+
    '<button id="resetSeason" class="danger">Reset season data</button></section>';
 }
 function editRoster(oldName,newName) {
@@ -199,9 +199,11 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
   try{await start();say('Loaded published records.')}catch(err){say(err.message)}return;
  }
  if(b.id==='resetSeason'){
-  if(prompt('Clear all Season 6 squads and matches? Type RESET SEASON to stage the reset.')!=='RESET SEASON')return;
-  for(const c of Object.values(state.clubs))c.players=[];
-  state.matches=[];matchId=null;editEvent=null;editingPlayer=null;changed();render();say('Reset staged. Save changes to publish, or reload to discard.');return;
+  if(dirty){say('Save or discard the current draft before staging a reset.');return}
+  if(prompt('Restore the Season 26 opening fixtures and clear match activity? Squads and club details stay intact. Type RESET SEASON to stage this change.')!=='RESET SEASON')return;
+  changed();restoreSeasonStart=true;
+  say('Reset staged. Publish changes to restore the opening fixtures, or reload published records to cancel.');
+  return;
  }
  if(b.id==='deleteFixture'){
   const m=match();
@@ -232,9 +234,13 @@ async function publishDraft(){
  if(!dirty||busy)return;
  busy=true;$('publish').disabled=true;document.querySelector('.layout').inert=true;
  try{
-  const r=await deskFetch('api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision,state})});
+  const resetting=restoreSeasonStart;
+  const payload=resetting?{revision,restoreSeasonStart:true}:{revision,state};
+  const r=await deskFetch('api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const d=await r.json();if(!r.ok)throw Error(d.error||'Unable to save.');
-  revision=d.revision;dirty=false;notifyParent({type:'boltz-ref-dirty',dirty:false});notifyParent({type:'boltz-ref-published',revision});
+  revision=d.revision;dirty=false;restoreSeasonStart=false;
+  if(resetting){await start();say('Opening fixtures restored. All squads and club information were kept.');return;}
+  notifyParent({type:'boltz-ref-dirty',dirty:false});notifyParent({type:'boltz-ref-published',revision});
   $('revision').textContent='Published · revision '+revision;
   if(tab==='Database control')render();
   say('Saved to the match centre.');
@@ -264,7 +270,7 @@ async function start(){
  }
  if(role==='owner' && tabs.includes(query.get('tool')))tab=query.get('tool');
  if(role!=='owner'&&!Object.values(sectionTabs).includes(tab))tab=sectionTabs.teams;
- state=publication.state;revision=publication.revision;dirty=false;
+ state=publication.state;revision=publication.revision;dirty=false;restoreSeasonStart=false;
  notifyParent({type:'boltz-ref-dirty',dirty:false});$('publish').disabled=true;
  const requested=query.get('match') || matchId;
  matchId=state.matches.find(m=>m.id===requested)?.id||state.matches.find(m=>m.status==='live')?.id||state.matches.find(m=>m.status==='scheduled')?.id||state.matches[0]?.id;

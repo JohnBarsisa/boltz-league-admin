@@ -1,0 +1,3 @@
+service/dist/
+node_modules/
+*.sqlite

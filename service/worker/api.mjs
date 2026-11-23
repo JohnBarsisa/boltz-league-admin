@@ -59,6 +59,55 @@ function validate(state){
  }
  return state;
 }
+const season6RosterCorrection = {"Foxes":{"before":["Ace","Caleb","Caleeb","Connor","Drenzy","Keith","Khash","Marcus","Samuel","Seyi","Steve (C)","Toby","Zod"],"after":["Ace","Caleeb","Connor","Drenzy","Keith","Khash","Marcus","Samuel","Seyi","Steve (C)","Toby","Zod"]},"Stacey":{"before":["AK","Bilal","Billan","Daniel (C)","Elliot","Harry B","Jeremiah","KP","Meyene","Rasheed","Saad","Warryn"],"after":["AK","Daniel (C)","Elliot","Harry B","Jeremiah","KP","Meyene","Rasheed","Saad","Warryn"]}};
+
+const latestPublication = db => db.prepare('SELECT revision,content,updated_at FROM league_publications ORDER BY revision DESC LIMIT 1').first();
+
+async function applySeason6RosterCorrection(db,row){
+  // Apply only to the original published roster import, never to later editor revisions.
+  if(row.revision!==1)return row;
+  const state=JSON.parse(row.content);
+  for(const [club,edit] of Object.entries(season6RosterCorrection)){
+    const players=state.clubs?.[club]?.players;
+    if(!Array.isArray(players)||players.length!==edit.before.length||!edit.before.every(name=>players.includes(name)))return row;
+  }
+  for(const [club,edit] of Object.entries(season6RosterCorrection))state.clubs[club].players=edit.after;
+  const content=JSON.stringify(validate(state));
+  const updated_at=new Date().toISOString();
+  const result=await db.prepare('INSERT OR IGNORE INTO league_publications(revision,content,updated_at) SELECT ?,?,? WHERE (SELECT MAX(revision) FROM league_publications)=?')
+    .bind(2,content,updated_at,1).run();
+  return result.meta.changes ? {revision:2,content,updated_at} : await latestPublication(db);
+}
+
+// One-time, add-only matchday roster import from the 20 November team lists.
+const matchdayImportId='season26-2026-11-20-squads';
+const openingMatchdayPlayers={
+ Infinity:['Steven','Bright','Josh','Harry Bamber','Isaac'],
+ CityMen:['Khaleed','Steady','Ayo Ay'],
+ Stacey:['Habib','Arnie'],
+ Typhoon:['Chris','Rob','Seyi','Oscar']
+};
+const playerKey=name=>name.normalize('NFKC').trim().replace(/\s*\(C\)$/i,'').replace(/\s+/g,' ').toLocaleLowerCase('en');
+async function applyOpeningMatchdayPlayers(db,row){
+ const current=publishedState(row), season=current.tournament?.name;
+ if(season&&!/^season\s+(?:6|26)\.?$/i.test(season.trim()))return row;
+ const applied=current.matchdayRosterImports||[];
+ if(applied.includes(matchdayImportId))return row;
+ for(const [team,players] of Object.entries(openingMatchdayPlayers)){
+  const squad=current.clubs[team].players;
+  const existing=new Set(squad.map(playerKey));
+  for(const name of players){
+   const key=playerKey(name);
+   if(!existing.has(key)){squad.push(name);existing.add(key)}
+  }
+ }
+ current.matchdayRosterImports=[...applied,matchdayImportId];
+ const content=JSON.stringify(validate(current)),updated_at=new Date().toISOString(),revision=row.revision+1;
+ const result=await db.prepare('INSERT OR IGNORE INTO league_publications(revision,content,updated_at) SELECT ?,?,? WHERE (SELECT MAX(revision) FROM league_publications)=?')
+  .bind(revision,content,updated_at,row.revision).run();
+ return result.meta.changes?{revision,content,updated_at}:await latestPublication(db);
+}
+
 function publishedState(row){
   const state=JSON.parse(row.content);
   // Earlier publications used the initial shirt colours. Future editor choices take precedence.
@@ -74,7 +123,7 @@ export default {async fetch(request,env){
  try{
  const ownerEmail=request.headers.get('oai-authenticated-user-email');
  const isOwner=Boolean(ownerEmail && ownerEmail.toLowerCase()===env.EDITOR_EMAIL?.toLowerCase());
- if(path==='/api/health'&&request.method==='GET')return json({ok:true,release:'boltz-ref-publish-2026-11-22'});
+ if(path==='/api/health'&&request.method==='GET')return json({ok:true,release:'boltz-production-2026-11-23',...(typeof releaseInfo==='undefined'?{}:releaseInfo)});
  if((request.headers.has('x-boltz-owner')||path==='/api/history')&&!isOwner)return json({error:'League owner access required.'},403);
  if(path==='/api/history'&&request.method==='GET'){
   const value=new URL(request.url).searchParams.get('revision');
@@ -85,11 +134,13 @@ export default {async fetch(request,env){
  if(['/api/login','/api/logout','/api/access'].includes(path))return await authRoute(request,env,path);
  if((path==='/api/state'||path==='/api/ref-state')&&request.method==='GET'){
   if(path==='/api/ref-state' && !await referee(request,env))return json({error:'Your referee session has expired.'},401);
-  let row=await env.DB.prepare('SELECT revision,content,updated_at FROM league_publications ORDER BY revision DESC LIMIT 1').first();
+  let row=await latestPublication(env.DB);
   if(!row){
    await env.DB.prepare('INSERT OR IGNORE INTO league_publications(revision,content,updated_at) VALUES(0,?,?)').bind(JSON.stringify(seed),new Date().toISOString()).run();
-   row=await env.DB.prepare('SELECT revision,content,updated_at FROM league_publications ORDER BY revision DESC LIMIT 1').first();
+   row=await latestPublication(env.DB);
   }
+  row=await applySeason6RosterCorrection(env.DB,row);
+  row=await applyOpeningMatchdayPlayers(env.DB,row);
   const state=publishedState(row);
   return json({revision:row.revision,state,updated:row.updated_at,...(path==='/api/ref-state'?{role:'referee'}:{})});
  }
@@ -112,9 +163,23 @@ export default {async fetch(request,env){
    if(!type)fail('Choose a JPEG, PNG or WebP image.');const id=crypto.randomUUID();await env.BUCKET.put(id,bytes,{httpMetadata:{contentType:type}});return json({path:'/media/'+id},201);
   }
   if(path==='/api/state'&&request.method==='PUT'){
-   const raw=await request.text();if(raw.length>900000)fail('Season data is too large.');const {revision,state}=JSON.parse(raw);if(!Number.isSafeInteger(revision)||revision<0)fail('Invalid revision.');
+   const raw=await request.text();if(raw.length>900000)fail('Season data is too large.');
+   const payload=JSON.parse(raw), {revision}=payload;
+   if(!Number.isSafeInteger(revision)||revision<0)fail('Invalid revision.');
+   let {state}=payload;
+   if(payload.restoreSeasonStart===true){
+    // Rebuild from the published revision, never from client-supplied squad data.
+    const row=await latestPublication(env.DB);
+    if(!row||row.revision!==revision)return json({error:'Reload to get the latest revision.'},409);
+    const current=publishedState(row), seasonName=current.tournament?.name;
+    if(seasonName&&!/^season\s+(?:6|26)\.?$/i.test(seasonName.trim()))fail('The opening fixture snapshot is for Season 26 only.',409);
+    state={...current,matches:structuredClone(seed.matches)};
+   }else if(!owner){
+    const row=await latestPublication(env.DB);
+    if(!row||row.revision!==revision)return json({error:'Reload to get the latest revision.'},409);
+    enforceRefScope(publishedState(row),state);
+   }
    const content=JSON.stringify(validate(state));
-   if(!owner){const row=await env.DB.prepare('SELECT content,revision,updated_at FROM league_publications ORDER BY revision DESC LIMIT 1').first();if(!row||row.revision!==revision)return json({error:'Reload to get the latest revision.'},409);enforceRefScope(publishedState(row),state)}
    const result=await env.DB.prepare('INSERT INTO league_publications(revision,content,updated_at) SELECT ?,?,? WHERE COALESCE((SELECT MAX(revision) FROM league_publications),0)=?').bind(revision+1,content,new Date().toISOString(),revision).run();
    return result.meta.changes?json({revision:revision+1}):json({error:'Another session published changes. Reload before editing again.'},409);
   }

@@ -1,0 +1,22 @@
+name: Verify deployed backend commit
+on:
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: Exact deployed GitHub backend commit
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require exact live release (read only)
+        env:
+          EXPECTED_COMMIT: ${{ inputs.expected_commit }}
+        run: node service/scripts/verify-production.mjs "$EXPECTED_COMMIT"
